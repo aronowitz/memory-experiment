@@ -1,9 +1,9 @@
 ##### Original Battig Dataset
 if(!require(WordPools)){install.packages("WordPools", dep = TRUE)} # v1.1-1
-data(Battig)
+data(Battig) # 5231 words, 56 categories
 data <- Battig
 
-##### Functions 
+##### Functions to apply constraints in selecting word stimuli
 makeWordList <- function(data, nw = 20, letters = 7, exclude = TRUE, 
                          duplicates = NULL, ...){
   if(class(exclude) %in% c("logical", "character")){
@@ -29,8 +29,10 @@ makeWordList <- function(data, nw = 20, letters = 7, exclude = TRUE,
       levels(data$catnum) <- 1:length(levels(data$catnum))
     }
   }
-  restrict <- function(data, letters = NULL, hyphens = FALSE, spaces = FALSE){
+  restrict <- function(data, letters = NULL, hyphens = FALSE, 
+                       spaces = FALSE, periods = FALSE){
     if(!hyphens){data <- data[!grepl("-", data$word), ]}
+    if(!periods){data <- data[!grepl("[.]", data$word), ]}
     if(!spaces | !is.null(letters)){data <- data[!grepl(" ", data$word), ]}
     if(!is.null(letters)){data <- data[nchar(data$word) <= letters, ]}
     data
@@ -69,6 +71,17 @@ makeWordList2 <- function(data, ...){
 
 ##### Get final word stimuli
 out <- makeWordList2(data, nw = 20, letters = 7, exclude = TRUE)
+
+### CONSTRAINTS
+# 17 categories removed entirely
+# no more than 7 letters in a word
+# no spaces, hyphens, or periods
+# no duplicate words
+
+### STIMULI
+# All categories that met these constraints for at least 20 words
+# The top 20 most common words in each of these categories were selected
+# Final dataset: 680 words, 34 categories
 
 ################################################################################
 ################### WRITE WORD STIMULI TO EXPERIMENT.HTML FILE #################
