@@ -27,7 +27,7 @@
 	var firstSlideTime = 1100; // 1100
 	var timePerWord = 1100; // 1100
 	var lastSlideTime = 10000; // 10000
-	var flanker_time = 1500; // 1500
+	var flanker_time = 900; // 1500
 	var disableButton = true; // true
 	var distractorDebrief = false; // false
 	var breakTime = .5; // in minutes
@@ -85,6 +85,11 @@
 	var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
 	var dateTime = date+' '+time;
 	jsPsych.data.addProperties({startTime: dateTime});
+	
+	// Attention check stimuli
+	var attn_words = ["zebra", "porcupine", "lion", "monkey", "elephant", "seal", "otter", "fish", "sheep", "mouse"];
+	var attn_word_select = jsPsych.randomization.sampleWithoutReplacement(attn_words, 1, false);
+	jsPsych.data.addProperties({attn_word: attn_word_select});
 	
 	
 	////////////////////////////////////////////////////////////////////
@@ -177,11 +182,14 @@
 		"<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
 		  "<p>After seeing the museum, you will be asked to complete a short reaction-time task.</p>"+
 		  "<p>You must then drag and drop each word back to its original location.</p>"+
+		  "<p>Note that once you place a word onto a location, you cannot change it for the remainder of the trial.</p>"+
 		  "<p><strong>For each trial, your goal is to remember the locations of as many words as possible.</strong></p><br>",
 		"<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
-		  "<p>Note that once you place a word onto a location, you cannot change it for the remainder of the trial.</p>"+
-		  "<p>Please refrain from using an external aid (e.g., pen & paper; a mobile phone) during the task.</p>"+
-		  "<p>Our goal is to investigate how people perform on this task using memory alone.</p><br>",
+		  "<p><strong><u>Please refrain from using an external aid (e.g., pen & paper; a mobile phone) during the task.</u></strong></p>"+
+		  "<p>We're interested in how well you can remember the words on your own,<br>so please do not write anything down or use your phone.</p><br>",
+		 "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
+		  "<p>At the end of the study you will be asked to type a particular word into a text box<br>to confirm that you were paying attention and reading the instructions.</p>"+
+		  "<p>The word is <em>"+attn_word_select+".</em> Please remember this word or write it down for later.</p>",
 		"<p>The following 5 trials will be for <em>PRACTICE</em>, and will not count toward your final score.</p>"+
 		  "<p><strong>Click 'Next' as soon as you're ready to begin.</strong></p><br>"],
 		show_clickable_nav: true,
@@ -472,6 +480,10 @@
 			questions: [{prompt: "<p>First, please enter your <strong>Mechanical Turk Worker ID</strong> to ensure that you are fully compensated for your time today.</p>"}],
 			on_finish: function(data){data.stimulus = "workerID"}
 		}, {
+			type: 'survey-multi-choice',
+			questions: [{prompt: "<p>Now, what was the word we asked you to remember at the beginning of the study?</p>", options: attn_words, required: true}],
+			on_finish: function(data){data.stimulus = "attn_check"}
+		}, {
 			type: 'survey-text',
 			questions: [{prompt: "<p>What is your age? Please type a number in the box below</p>"}],
 			on_finish: function(data){data.stimulus = "age"}
@@ -503,6 +515,10 @@
 			type: 'survey-multi-choice',
 			questions: [{prompt: "<p>Did you have any trouble understanding any of the language or instructions in this study?</p>", options: ['Yes', 'No'], horizontal: true}],
 			on_finish: function(data){data.stimulus = "understand"}
+		}, {
+			type: 'survey-text',
+			questions: [{prompt: "<p>Please describe any strategies you found yourself using during the task.</p><p>Did you generally aim to remember the whole scene, or just a few words?<br>Did you think of the words in different rooms as belonging together, or did you look at them separately?</p>", rows: 10, columns: 50}],
+			on_finish: function(data){data.stimulus = "strategies"}
 		}, {
 			type: 'survey-text',
 			questions: [{prompt: "<p>Finally, please let us know any comments or thoughts you had while completing the study.</p>", rows: 10, columns: 50}],
