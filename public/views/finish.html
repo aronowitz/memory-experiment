@@ -8,17 +8,58 @@ body {font-family:'Open Sans', 'Arial', sans-serif;
         line-height: 1.6em;
         margin: 50px;}
 </style>
+<script language="javascript">
+var session = 1;
+var day = 0;
+
+function debrief(){
+	if(session !== 3){
+		document.getElementById("debriefing").remove();
+		if(session == 1){
+			document.getElementById("sessionTwo").remove();
+		} else {
+			document.getElementById("sessionOne").remove();
+		}
+	} else {
+		document.getElementById("sessionOne").remove();
+		document.getElementById("sessionTwo").remove();
+	}
+}
+
+</script>
 </head>
-<body>
+<body onload='debrief()'>
 	
 <p ALIGN=CENTER> Thank you for your participation! Your MTurk completion code is: </p>
-
 <p ALIGN=CENTER style='font-size:30px'><b> M73A25 </b></p>
-
 <p ALIGN=CENTER> Please enter this number into the appropriate field on the MTurk HIT. </p>
-
 <p ALIGN=CENTER><u><b> Your responses have been successfully recorded. You may close this window at any time. </b></u></p><br>
 
+<div id="sessionOne">
+<p>
+You have now completed Session 1 of this three-part study. Your participation is important because it helps contribute to our understanding of the different psychological factors 
+that influence the ability to remember information. If you have any questions about the study, please send an email to the primary investigator (Dr. Sarah Robins) at skrobins@ku.edu. 
+You will be provided with more details about the study upon completing Session 3.
+</p>
+<p>
+You will receive $8 for completing today's session. You will earn an additional $9 after completing Session 2, and $10 after completing Session 3.
+You will receive an email tomorrow morning with more information about how to complete the next session.
+</p>
+</div>
+
+<div id="sessionTwo">
+<p>
+You have now completed Session 2 of this three-part study. Your participation is important because it helps contribute to our understanding of the different psychological factors 
+that influence the ability to remember information. If you have any questions about the study, please send an email to the primary investigator (Dr. Sarah Robins) at skrobins@ku.edu. 
+You will be provided with more details about the study upon completing Session 3.
+</p>
+<p>
+You will receive $9 for completing today's session, as well as an additional $10 after completing Session 3.
+You will receive an email tomorrow morning with more information about how to complete the final session.
+</p>
+</div>
+
+<div id="debriefing">
 <p> 
 Thank you for your participation in this study. Your participation is important because it helps contribute to our understanding of the different psychological factors 
 that influence the ability to remember information. We hope that by seeing how people perform on the task that you completed today will help us learn more about the ways that 
@@ -35,6 +76,7 @@ If you have any questions about this study, or are interested in learning more a
 Dr. Sarah Robins (skrobins@ku.edu) at any time. Any further questions about your rights as a participant may be directed to the 
 Institutional Review Board at KU which has approved this study: they may be reached at (785)-864-7429, or (785)-864-7385, or by email at irb@ku.edu. 
 </p>
+</div>
 
 </body>
 </html>

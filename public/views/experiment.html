@@ -23,22 +23,24 @@
 	////////////////////////////////////////////////////////////////////
 	//////////////////////// INITIAL SETTINGS //////////////////////////
 	////////////////////////////////////////////////////////////////////
-	var trialsPerCondition = 2;
+	var session = 1;
+	var trialsPerCondition = 6;
 	var firstSlideTime = 1100; // 1100
 	var timePerWord = 1100; // 1100
 	var lastSlideTime = 10000; // 10000
-	var flanker_time = 900; // 1500
+	var flanker_time = 900; // 900
 	var disableButton = true; // true
 	var distractorDebrief = false; // false
 	var breakTime = .5; // in minutes
 	var betweenSubjectsCondition = 0; // 0 for within-subjects
+	var requireDemos = true; // true
 	
 	
 	////////////////////////////////////////////////////////////////////
 	//////////////////////////// TESTING ///////////////////////////////
 	////////////////////////////////////////////////////////////////////
 	var quick = true; // change to 'true' to speed up for testing
-	if(quick == true){firstSlideTime = 10; timePerWord = 10; lastSlideTime = 10; flanker_time = 10; disableButton = false; breakTime = .25; trialsPerCondition = 6}
+	if(quick == true){firstSlideTime = 10; timePerWord = 10; lastSlideTime = 10; flanker_time = 10; disableButton = false; breakTime = .25; trialsPerCondition = 3}
 	var testOneTrial = false; // change to 'true' to test one trial without flanker task or instructions
 	var repeatOneTrial = 1; // if testOneTrial == true, this is the number of trials you want to view
 	var conditionOneTrial = 1; // choose a number 1-5 of the condition you would like to test
@@ -52,11 +54,20 @@
 	////////////////////////////////////////////////////////////////////
 	//////////////////////// STATIC SETTINGS ///////////////////////////
 	////////////////////////////////////////////////////////////////////
+	jsPsych.data.addProperties({session: session});
 	var randomizationOption = 4; // 1 = total randomization of all trials; 2 = shuffleNoRepeats of all trials; 3 = show all conditions in random sets; 4 = same as 3 but with no repeats
 	var zeroone = [];
 	if(distractorDebrief == false){zeroone = 0} else {zeroone = 1};
-	var totalTrials = (trialsPerCondition * 5) + 5;
+	if(session == 1){
+		var practiceConditions = [5, 5];
+		var ptrials = practiceConditions.length;
+		if(ptrials == 2){var ptrialGrammar = "both"} else {var ptrialGrammar = "all "+ptrials+""};
+	} else {
+		var ptrials = 0;
+	}
+	var totalTrials = (trialsPerCondition * 5) + ptrials;
 	var postBreakProp = .4;
+	if(trialsPerCondition == 2){postBreakProp = .5}
 	var postTrialsPerCondition = 0;
 	if(breakTime !== 0 && trialsPerCondition > 1){
 		postTrialsPerCondition = Math.floor(trialsPerCondition * postBreakProp);
@@ -80,6 +91,7 @@
 	for(var i = 0; i < allWords.length; i++){allWords[i] = allWords[i].toUpperCase().split(",")};
 	
 	// GET START DATE + TIME
+	var day = 0; // this value is set manually
 	var today = new Date();
 	var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
 	var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -87,10 +99,32 @@
 	jsPsych.data.addProperties({startTime: dateTime});
 	
 	// Attention check stimuli
-	var attn_words = ["zebra", "porcupine", "lion", "monkey", "elephant", "seal", "otter", "fish", "sheep", "mouse"];
+	var attn_words = ["ZEBRA", "PORCUPINE", "LION", "MONKEY", "ELEPHANT", "SEAL", "OTTER", "FISH", "SHEEP", "MOUSE"];
 	var attn_word_select = jsPsych.randomization.sampleWithoutReplacement(attn_words, 1, false);
 	jsPsych.data.addProperties({attn_word: attn_word_select});
 	
+	// Set up instructions based on session number
+	var consentSession = ""; var instrucZero = ""; var instrucOne = ""; var money = "";
+	if(session == 1){
+		consentSession += "There will be "+ptrials+" practice trials followed by "+(totalTrials - ptrials)+" official trials.";
+		instrucZero += "<p>You will receive an email tomorrow morning ";
+		if(day !== 0){instrucZero += "<strong>("+day+")</strong> "}
+		instrucZero += "with instructions for completing the next session.</p>";
+		instrucOne += "<p>You will begin by completing "+ptrials+" practice trials, followed by "+(totalTrials - ptrials)+" real trials of the game.</p>";
+		money += "$8";
+	} else if(session == 2){
+		consentSession += "For today's session there will not be any practice trials.";
+		instrucZero += "<p>You will receive an email tomorrow morning ";
+		if(day !== 0){instrucZero += "<strong>("+day+")</strong> "}
+		instrucZero += "with instructions for completing the final session.</p>";
+		instrucOne += "<p>You will be playing the same memory game as in the previous session.</p><p>There will not be any practice trials at the beginning of the game.</p>";
+		money += "$9";
+	} else if(session == 3){
+		consentSession += "For today's session there will not be any practice trials.";
+		instrucZero += "<p><strong>This is the final session of the study.</strong></p>";
+		instrucOne += "<p>You will be playing the same memory game as in the previous sessions.</p><p>There will not be any practice trials at the beginning of the game.</p>";
+		money += "$10";
+	}
 	
 	////////////////////////////////////////////////////////////////////
 	/////////////////////////// INSTRUCTIONS ///////////////////////////
@@ -105,7 +139,7 @@
 	var consent = {
 		type: 'html-button-response',
 		choices: ['Yes, I agree', 'No, I do not agree'],
-		stimulus: "<h4 ALIGN=CENTER>Title of Study: Investigating Memory Structure</h4>"+
+		stimulus: "<h4 ALIGN=CENTER>Title of Study: Investigating Memory Structure (Session "+session+")</h4>"+
 		"<p ALIGN=LEFT>INTRODUCTION</p>"+
 		"<c2>The Department of Philosophy at the University of Kansas supports the practice of protection for human subjects<br>"+
 		"participating in research. The following information is provided for you to decide whether you wish to participate<br>"+
@@ -114,14 +148,14 @@
 		"<c1>PURPOSE OF THE STUDY</c1>"+
 		"<c2>We are investigating how people structure information so as to better remember it.</c2>"+
 		"<c1>PROCEDURES</c1>"+
-		"<c2>During the session, you will be asked to engage in "+totalTrials+" trials of a memory task, wherein you will be shown a floor<br>"+
+		"<c2>During today's session, you will be asked to engage in "+totalTrials+" trials of a memory task, wherein you will be shown a floor<br>"+
 		"plan of a &#34;museum&#34; with a variety of written words arranged in various locations. The task will begin by showing<br>"+
 		"you the locations of these words, one by one, and then the words will disappear from the museum and you will<br>"+
 		"be prompted to place them back in the correct location. At the completion of each trial you will receive feedback<br>"+
-		"on your performance. There will be 5 practice trials followed by "+(totalTrials - 5)+" official trials; between the initial exposure<br>"+
+		"on your performance. "+consentSession+" Between the initial exposure<br>"+
 		"to the items and the recall test you will be asked to complete a simple reaction time task before continuing on to<br>"+
 		"the next trial. It is estimated that this will take no longer than 60 minutes. Immediately following your participation<br>"+
-		"in the session, you will be provided with more detailed information concerning the study. Your participation is<br>"+
+		"in the final session, you will be provided with more detailed information concerning the study. Your participation is<br>"+
 		"solicited although strictly voluntary. You are free to stop participating at any time during the study without any<br>"+
 		"penalty for doing so. The researchers will immediately inform you if any new information surfaces that may affect<br>"+
 		"your willingness to participate.</c2>"+
@@ -131,7 +165,7 @@
 		"<c2>Although participation will not directly benefit you, we anticipate that the information you provide will be useful<br>"+
 		"in understanding how people structure and remember information.</c2>"+
 		"<c1>PAYMENT TO PARTICIPANTS</c1>"+
-		"<c2>You will be paid $6 for your participation in this study. Investigators may ask for your social security number in<br>"+
+		"<c2>You will be paid "+money+" for your participation in today's study. Investigators may ask for your social security number in<br>"+
 		"order to comply with federal and state tax and accounting regulations.</c2>"+
 		"<c1>PARTICIPANT CONFIDENTIALITY</c1>"+
 		"<c2>We assure you that your name will not be associated in any way with the research findings. The information you<br>"+
@@ -170,29 +204,38 @@
 	
 	var instructions = {
 		type: 'instructions',
-		pages: [
-		"<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
-		  "<p>Hello! Thank you for your participation.</p>"+
-		  "<p>This study lasts for three sessions in total. Today you will be completing Session 1.</p>"+
-		  "<p>In this session, you will be asked to complete <strong>"+totalTrials+" trials</strong> of a memory game.</p>"+
-		  "<p>You will begin by completing 5 practice trials, followed by "+(totalTrials - 5)+" real trials of the game.</p><br>",
-		"<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
-		  "<p>For each trial, you will see an image of a museum floorplan.</p>"+
-		  "<p>Then, words will appear randomly in different locations on your screen.</p>"+
-		  "<p><strong>As the words appear, do your best to remember the specific location of each word.</strong></p><br>",
-		"<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
-		  "<p>After seeing the museum, you will be asked to complete a short task before returning to the museum.</p>"+
-		  "<p>You must then drag and drop each word back to its original location.</p>"+
-		  "<p>Note that once you place a word onto a location, you cannot change it for the remainder of the trial.</p>"+
-		  "<p><strong>For each trial, your goal is to remember the locations of as many words as possible.</strong></p><br>",
-		"<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
-		  "<p><strong><u>Please refrain from using an external aid (e.g., pen & paper; a mobile phone) during the task.</u></strong></p>"+
-		  "<p>We're interested in how well you can remember the words on your own,<br>so please do not write anything down or use your phone.</p><br>",
-		 "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
-		  "<p>At the end of this session, you will be asked to recall this word to confirm that you were paying attention.</p>"+
-		  "<p>The word is <strong>"+attn_word_select+"</strong></p>",
-		"<p>The following 5 trials will be for <em>PRACTICE</em>, and will not count toward your final score.</p>"+
-		  "<p><strong>Click 'Next' as soon as you're ready to begin.</strong></p><br>"],
+		pages: function(){
+			var allPages = [];
+			var pZero = ""; var pOne = ""; var pTwo = ""; var pThree = ""; var pFour = ""; var pFive = "";
+			pZero += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
+				"<p>Hello! Thank you for your participation.</p>"+
+				"<p>This study lasts for three sessions in total. Today you will be completing <strong>Session "+session+"</strong>.</p>"+instrucZero+"<p>"+
+				"<p>You will be awarded "+money+" for completing today's session.</p><br>";
+			pOne += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
+				"<p>In today's session you will be asked to complete <strong>"+totalTrials+" trials</strong> of a memory game.</p>"+instrucOne+"<br>";
+			pTwo += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
+				"<p>For each trial, you will see an image of a museum floorplan.</p>"+
+				"<p>Then, words will appear randomly in different locations on your screen.</p>"+
+				"<p><strong>As the words appear, do your best to remember the specific location of each word.</strong></p><br>";
+			pThree += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
+				"<p>After seeing the museum, you will be asked to complete a short task before returning to the museum.</p>"+
+				"<p>You must then drag and drop each word back to its original location.</p>"+
+				"<p>Note that once you place a word onto a location, you cannot change it for the remainder of the trial.</p>"+
+				"<p><strong>For each trial, your goal is to remember the locations of as many words as possible.</strong></p><br>";
+			pFour += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
+				"<p><strong><u>Please refrain from using an external aid (e.g., pen & paper; a mobile phone) during the task.</u></strong></p>"+
+				"<p>We're interested in how well you can remember the words on your own,<br>so please do not write anything down or use your phone.</p><br>";
+			pFive += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
+				"<p>At the end of this session, you will be asked to recall this word to confirm that you were paying attention.</p>"+
+				"<p>The word is <strong>"+attn_word_select+"</strong></p>";
+			allPages.push(pZero); allPages.push(pOne); allPages.push(pTwo); allPages.push(pThree); allPages.push(pFour); allPages.push(pFive);
+			if(session == 1){
+				var pSix = "<p>The following "+ptrials+" trials will be for PRACTICE, and will not count toward your final score.</p>"+
+				"<p><strong>Click 'Next' as soon as you're ready to begin.</strong></p><br>";
+				allPages.push(pSix);
+			}
+			return allPages;
+		},
 		show_clickable_nav: true,
 		show_page_number: true,
 		on_finish: function(data){data.stimulus = "instructions"}
@@ -201,9 +244,17 @@
 	var finalInstructions = {
 		type: 'html-button-response',
 		stimulus: function(){
-			var finalMessage = "<p><strong>You have now completed all 5 practice trials.</strong></p><br>"+
-			"<p>Once you click the button below, the real trials will begin<br>"+
-			"There will be a total of <strong>"+(totalTrials - 5)+" trials</strong> to complete.</p>";
+			var finalMessage = "";
+			var realTrials = "";
+			if(session == 1){
+				finalMessage += "<p><strong>You have now completed "+ptrialGrammar+" practice trials.</strong></p><br>";
+				realTrials += "real trials";
+			} else {
+				realTrials += "trials";
+			}
+			finalMessage += "<p>Once you click the button below, the "+realTrials+" will begin.<br>";
+			if(session !== 1){finalMessage += "<br>"}
+			finalMessage += "There will be a total of <strong>"+(totalTrials - ptrials)+" trials</strong> to complete.</p>";
 			if(breakTime !== 0){finalMessage += "<p>You will receive a short break after completing <strong>"+(trialsPerCondition * 5)+" trials</strong>.</p>"};
 			finalMessage += "<br><p>Click the button when you are ready to begin.</p>";
 			return finalMessage;
@@ -362,11 +413,11 @@
 		stimulus: function(){
 			var totalCorrect = jsPsych.data.get().last(1).values()[0].sort_correct;
 			var trial = jsPsych.data.get().last(1).values()[0].trial_index;
-			if(trial < 49){
+			if(trial < ((ptrials * (8 + zeroone)) + 2)){
 				trial = (trial - 1)/(8 + zeroone)
 			} else {
 				trial = (trial - 2)/(8 + zeroone)
-				if(breakTime !== 0 && trial > (trialsPerCondition * 5) + 5){
+				if(breakTime !== 0 && trial > (trialsPerCondition * 5) + ptrials){
 					trial = jsPsych.data.get().last(1).values()[0].trial_index;
 					trial = (trial - 4)/(8 + zeroone);
 				};
@@ -482,7 +533,7 @@
 			on_finish: function(data){data.stimulus = "workerID"}
 		}, {
 			type: 'survey-multi-choice',
-			questions: [{prompt: "<p>Now, what was the word we asked you to remember at the beginning of the study?</p>", options: attn_words, required: true}],
+			questions: [{prompt: "<p>Now, what was the word we asked you to remember at the beginning of the study?</p>", options: attn_words, required: requireDemos}],
 			on_finish: function(data){data.stimulus = "attn_check"}
 		}, {
 			type: 'survey-text',
@@ -493,6 +544,7 @@
 			questions: [{
 				prompt: "<p>Please indicate your gender</p>",
 				options: ['Male', 'Female', 'Other'],
+				required: requireDemos,
 				horizontal: false
 			}],
 			on_finish: function(data){data.stimulus = "gender"}
@@ -510,11 +562,11 @@
 			on_finish: function(data){data.stimulus = "race"}
 		}, {
 			type: 'survey-multi-choice',
-			questions: [{prompt: "<p>Is English your primary language?</p>", options: ['Yes', 'No'], horizontal: true}],
+			questions: [{prompt: "<p>Is English your primary language?</p>", options: ['Yes', 'No'], horizontal: true, required: requireDemos}],
 			on_finish: function(data){data.stimulus = "english"}
 		}, {
 			type: 'survey-multi-choice',
-			questions: [{prompt: "<p>Did you have any trouble understanding any of the language or instructions in this study?</p>", options: ['Yes', 'No'], horizontal: true}],
+			questions: [{prompt: "<p>Did you have any trouble understanding any of the language or instructions in this study?</p>", options: ['Yes', 'No'], horizontal: true, required: requireDemos}],
 			on_finish: function(data){data.stimulus = "understand"}
 		}, {
 			type: 'survey-text',
@@ -574,17 +626,18 @@
 	////////////////////////////////////////////////////////////////////
 	//////////////////////// CREATE TIMELINE ///////////////////////////
 	////////////////////////////////////////////////////////////////////
-	var practiceTrials = {timeline: []};
-	var practiceConditions = [5, 4, 3, 2, 1];
-	if(betweenSubjectsCondition !== 0){practiceConditions = Array(5).fill(betweenSubjectsCondition)}
-	for(var i = 0; i < practiceConditions.length; i++){
-		practiceTrials.timeline.push(eval('setup' + practiceConditions[i]));
-		practiceTrials.timeline.push(flanker_instructions);
-		practiceTrials.timeline.push(flanker_test);
-		if(distractorDebrief == true){practiceTrials.timeline.push(flanker_debrief)};
-		practiceTrials.timeline.push(sort_trial);
-		practiceTrials.timeline.push(sort_feedback);
-	};
+	if(session == 1){
+		var practiceTrials = {timeline: []};
+		if(betweenSubjectsCondition !== 0){practiceConditions = Array(ptrials).fill(betweenSubjectsCondition)}
+		for(var i = 0; i < practiceConditions.length; i++){
+			practiceTrials.timeline.push(eval('setup' + practiceConditions[i]));
+			practiceTrials.timeline.push(flanker_instructions);
+			practiceTrials.timeline.push(flanker_test);
+			if(distractorDebrief == true){practiceTrials.timeline.push(flanker_debrief)};
+			practiceTrials.timeline.push(sort_trial);
+			practiceTrials.timeline.push(sort_feedback);
+		};
+	}
 	
 	var finalTrials = {timeline: [finalInstructions]};
 	if(betweenSubjectsCondition !== 0){shuffledTrials = Array(trialsPerCondition * 5).fill(betweenSubjectsCondition)}
@@ -626,7 +679,7 @@
 	if(testOneTrial == true){
 		timeline.push(testTrial);
 	} else {
-		timeline.push(practiceTrials);
+		if(session == 1){timeline.push(practiceTrials);};
 		timeline.push(finalTrials);
 		if(breakTime !== 0 && postTrialsPerCondition !== 0){
 			timeline.push(breakInstructions);

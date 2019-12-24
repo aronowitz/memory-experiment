@@ -5,13 +5,14 @@ var body_parser = require('body-parser');
 
 require('dotenv').config();
 
+
 // INSTANTIATE APP
 var app = express();
 
 let uri = process.env.MONGODB_URI;
 
+
 // MONGOOSE SETUP
-//mongoose.connect(process.env.CONNECTION || 'mongodb://localhost/data');
 mongoose.connect(uri);
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error'));
@@ -26,7 +27,7 @@ var Entry = mongoose.model('Entry', emptySchema);
 // STATIC MIDDLEWARE
 app.use(express.static(__dirname + '/public'));
 app.use('/jsPsych', express.static(__dirname + '/jsPsych'));
-app.use(body_parser.json());
+app.use(body_parser.json({limit: '50mb'}));
 
 
 // VIEW LOCATION, SET UP SERVING STATIC HTML
