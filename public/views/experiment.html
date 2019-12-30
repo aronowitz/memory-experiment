@@ -39,7 +39,7 @@
 	////////////////////////////////////////////////////////////////////
 	//////////////////////////// TESTING ///////////////////////////////
 	////////////////////////////////////////////////////////////////////
-	var quick = true; // change to 'true' to speed up for testing
+	var quick = false; // change to 'true' to speed up for testing
 	if(quick == true){firstSlideTime = 10; timePerWord = 10; lastSlideTime = 10; flanker_time = 10; disableButton = false; breakTime = .25; trialsPerCondition = 3}
 	var testOneTrial = false; // change to 'true' to test one trial without flanker task or instructions
 	var repeatOneTrial = 1; // if testOneTrial == true, this is the number of trials you want to view
@@ -225,9 +225,9 @@
 			pFour += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
 				"<p><strong><u>Please refrain from using an external aid (e.g., pen & paper; a mobile phone) during the task.</u></strong></p>"+
 				"<p>We're interested in how well you can remember the words on your own,<br>so please do not write anything down or use your phone.</p><br>";
-			pFive += "<h4 ALIGN=CENTER>INSTRUCTIONS</h4>"+
-				"<p>At the end of this session, you will be asked to recall this word to confirm that you were paying attention.</p>"+
-				"<p>The word is <strong>"+attn_word_select+"</strong></p>";
+			pFive += "<p style='font-size:50px'><strong>"+attn_word_select+"</strong></p>"+
+				"<p><u>Please do your best to remember this word for the duration of the session.</u></p>"+
+				"<p>At the end of this session, you will be asked to recall this word to confirm that you were paying attention.</p><br>";
 			allPages.push(pZero); allPages.push(pOne); allPages.push(pTwo); allPages.push(pThree); allPages.push(pFour); allPages.push(pFive);
 			if(session == 1){
 				var pSix = "<p>The following "+ptrials+" trials will be for PRACTICE, and will not count toward your final score.</p>"+
