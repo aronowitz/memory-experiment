@@ -85,14 +85,20 @@ write.csv(simple, 'simpleData.csv', row.names = FALSE)
 
 ### Analysis 1: Simple dataset
 if(!require(lme4)){install.packages('lme4', dependencies = TRUE)} # v1.1-19
+if(!require(lsmeans)){install.packages('lsmeans', dependencies = TRUE)}
 
-m1 <- lmer(correct ~ condition + trial + (1|ID) + (1|session), 
+m0 <- lmer(correct ~ condition + (1|ID) + (1|session),
+           data = simple, REML = FALSE)
+m1 <- lmer(correct ~ trial + (1|ID) + (1|session),
+           data = simple, REML = FALSE)
+m2 <- lmer(correct ~ condition + trial + (1|ID) + (1|session),
+           data = simple, REML = FALSE)
+m3 <- lmer(correct ~ condition * trial + (1|ID) + (1|session), 
            data = simple, REML = FALSE)
 
-m2 <- lmer(correct ~ condition * trial + (1|ID) + (1|session), 
-           data = simple, REML = FALSE)
+anova(m0, m2) # Is condition necessary, or only trial?
+anova(m1, m2) # Is trial necessary, or only condition?
+anova(m2, m3) # Are there interactions between trial and condition?
 
-anova(m1, m2)
-
-
+lsmeans(m2, pairwise ~ condition, adjust = 'tukey')
 
