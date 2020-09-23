@@ -2,6 +2,13 @@
 # Trevor James Swanson
 # 09/22/2020
 
+### CONDITIONS:
+# 1) Space + Semantics + Time
+# 2) Space + Time
+# 3) Space + Semantics
+# 4) Time + Semantics
+# 5) As much chaos as possible (control)
+
 
 ### ------------------------------------------------------------------------ ###
 ### --------------------------- DATA PREPARATION --------------------------- ###
@@ -20,7 +27,6 @@ simple <- lapply(sorts, function(z){
   k <- seq(1, unique(sapply(z, nrow)), by = 9)
   lapply(z, function(i) i[k, 1:3])
 })
-
 
 ### Create datasets:
 # Full data: all items, all IDs, all trials, all conditions
@@ -47,10 +53,22 @@ for(i in 1:3){
 
 sorts <- data.frame(do.call(rbind, sorts))
 simple <- data.frame(do.call(rbind, simple))
+
 for(i in c('ID', 'session', 'condition')){
   sorts[[i]] <- factor(sorts[[i]])
   simple[[i]] <- factor(simple[[i]])
 }
+
+conditions <- c('SpaceSemTime', 'SpaceTime', 'SpaceSem', 'TimeSem', 'Control')
+levels(sorts$condition) <- rev(levels(sorts$condition))
+sorts$condition <- as.numeric(as.character(sorts$condition))
+sorts$condition <- factor(sorts$condition)
+levels(sorts$condition) <- rev(conditions)
+
+levels(simple$condition) <- rev(levels(simple$condition))
+simple$condition <- as.numeric(as.character(simple$condition))
+simple$condition <- factor(simple$condition)
+levels(simple$condition) <- rev(conditions)
 
 sorts$correct <- sorts$correct/9
 simple$correct <- simple$correct/9
