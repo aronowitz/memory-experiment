@@ -2,7 +2,7 @@
 # Trevor James Swanson
 # 09/22/2020
 
-### CONDITIONS:
+### CONDITIONS: (numbering only relevant to original format)
 # 1) Space + Semantics + Time
 # 2) Space + Time
 # 3) Space + Semantics
@@ -13,7 +13,7 @@
 ### ------------------------------------------------------------------------ ###
 ### --------------------------- DATA PREPARATION --------------------------- ###
 ### ------------------------------------------------------------------------ ###
-source('../../extractData.R')
+source('extractData.R')
 out <- getData(getJSONS(), matchPs = TRUE)
 sorts <- lapply(out, lapply, getSorts)
 
