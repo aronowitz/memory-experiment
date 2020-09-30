@@ -99,6 +99,9 @@ getSorts <- function(dat, var = "final_locations"){
     for(i in 1:3){xxx[, i] <- xx[seq(i, length(xx), by = 3)]}
     colnames(xxx) <- c("cat", "src", "loc")
     xxx <- xxx + 1
+    xxx$room <- ifelse(xxx$loc <= 3, 1, ifelse(xxx$loc <= 6, 2, 3))
+    xxx$time <- 1:9
+    colnames(xxx) <- paste0(colnames(xxx), '1')
     return(xxx)
   }
   out <- lapply(grep(stimulus, dat$stimulus), sortData, dat, var)
@@ -108,6 +111,28 @@ getSorts <- function(dat, var = "final_locations"){
   ps <- do.call(cbind, lapply(ps, rep, each = unique(sapply(out, nrow))))
   out <- cbind.data.frame(ps, do.call(rbind, out))
   return(out)
+}
+
+# Get initial locations for stimuli
+getInits <- function(dat, rmPractice = TRUE){
+  gnum <- function(x, numbers = TRUE){
+    x <- gsub(ifelse(numbers, '[^0-9]', '[0-9]'), '', x)
+    if(numbers){x <- as.numeric(x)}
+    return(x)
+  }
+  kk <- which(!is.na(dat$animation_sequence))
+  kk <- strsplit(dat$animation_sequence[kk], ',[{]')
+  if(length(kk) == 32 & isTRUE(rmPractice)){kk <- kk[-(1:2)]}
+  kk <- lapply(kk, function(z){
+    z1 <- setNames(data.frame(do.call(rbind, strsplit(z, ','))), c('cat', 'src', 'loc'))
+    for(i in 1:3){z1[, i] <- gnum(z1[, i]) + 1}
+    z1$room <- ifelse(z1$loc <= 3, 1, ifelse(z1$loc <= 6, 2, 3))
+    z1$time <- 1:9
+    return(z1)
+  })
+  kk <- data.frame(do.call(rbind, kk))
+  colnames(kk) <- paste0(colnames(kk), '0')
+  return(kk)
 }
 
 # Get data frame(s) of proportion correct per sort trial
@@ -120,3 +145,4 @@ getCorrect <- function(dat){
   if(length(out) == 1){out <- out[[1]]}
   return(out)
 }
+

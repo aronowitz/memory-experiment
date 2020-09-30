@@ -16,6 +16,9 @@
 source('extractData.R')
 out <- getData(getJSONS(), matchPs = TRUE)
 sorts <- lapply(out, lapply, getSorts)
+inits <- data.frame(do.call(rbind, lapply(
+  lapply(out, lapply, getInits), function(z) data.frame(do.call(rbind, z)))
+))
 
 sorts$dat1 <- lapply(sorts$dat1, function(z){
   z1 <- z[-(1:18), ]
@@ -75,8 +78,9 @@ simple$correct <- simple$correct/9
 
 rownames(sorts) <- 1:nrow(sorts)
 rownames(simple) <- 1:nrow(simple)
-write.csv(sorts, 'fullData.csv', row.names = FALSE)
-write.csv(simple, 'simpleData.csv', row.names = FALSE)
+sorts <- cbind(sorts, inits)
+# write.csv(sorts, 'fullData.csv', row.names = FALSE)
+# write.csv(simple, 'simpleData.csv', row.names = FALSE)
 
 
 ### ------------------------------------------------------------------------ ###
