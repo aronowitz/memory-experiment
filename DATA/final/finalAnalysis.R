@@ -84,7 +84,7 @@ sorts <- cbind(sorts, inits)
 # write.csv(simple, 'simpleData.csv', row.names = FALSE)
 
 
-### Coding Errors
+### Coding Error Patterns
 ids <- split(sorts, sorts$ID)
 ids <- lapply(ids, function(z) split(z, z$trial))
 
@@ -93,14 +93,21 @@ for(i in seq_along(ids)){
     k <- ids[[i]][[j]]
     s1 <- apply(k[, grep('1$', colnames(k))[1:4]], 1, function(zz) paste0(zz, collapse = '.'))
     s2 <- apply(k[, grep('0$', colnames(k))[1:4]], 1, function(zz) paste0(zz, collapse = '.'))
+    
     s3 <- apply(k[, c('cat1', 'src1', 'room1')], 1, function(zz) paste0(zz, collapse = '.'))
     s4 <- apply(k[, c('cat0', 'src0', 'room0')], 1, function(zz) paste0(zz, collapse = '.'))
+    
     s5 <- apply(k[, c('cat1', 'loc1')], 1, function(zz) paste0(zz, collapse = '.'))
     s6 <- apply(k[, c('cat0', 'loc0')], 1, function(zz) paste0(zz, collapse = '.'))
+    
+    s7 <- apply(k[, c('cat1', 'room1')], 1, function(zz) paste0(zz, collapse = '.'))
+    s8 <- apply(k[, c('cat0', 'room0')], 1, function(zz) paste0(zz, collapse = '.'))
+    
     ids[[i]][[j]]$item_correct <- as.numeric(s1 %in% s2)
     ids[[i]][[j]]$time_correct <- as.numeric(s1 == s2)
     ids[[i]][[j]]$room_correct <- as.numeric(s3 %in% s4)
     ids[[i]][[j]]$cat_correct <- as.numeric(s5 %in% s6)
+    ids[[i]][[j]]$cat_room_correct <- as.numeric(s7 %in% s8)
   }
 }
 
