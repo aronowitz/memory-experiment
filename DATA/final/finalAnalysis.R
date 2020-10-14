@@ -13,6 +13,7 @@
 ### ------------------------------------------------------------------------ ###
 ### --------------------------- DATA PREPARATION --------------------------- ###
 ### ------------------------------------------------------------------------ ###
+if(!require(ggplot2)){install.packages('ggplot2', dependencies = TRUE)}
 source('extractData.R')
 out <- getData(getJSONS(), matchPs = TRUE)
 sorts <- lapply(out, lapply, getSorts)
@@ -81,6 +82,60 @@ rownames(simple) <- 1:nrow(simple)
 sorts <- cbind(sorts, inits)
 # write.csv(sorts, 'fullData.csv', row.names = FALSE)
 # write.csv(simple, 'simpleData.csv', row.names = FALSE)
+
+
+### Coding Errors
+ids <- split(sorts, sorts$ID)
+ids <- lapply(ids, function(z) split(z, z$trial))
+
+for(i in seq_along(ids)){
+  for(j in seq_along(ids[[i]])){
+    k <- ids[[i]][[j]]
+    s1 <- apply(k[, grep('1$', colnames(k))[1:4]], 1, function(zz) paste0(zz, collapse = '.'))
+    s2 <- apply(k[, grep('0$', colnames(k))[1:4]], 1, function(zz) paste0(zz, collapse = '.'))
+    s3 <- apply(k[, c('cat1', 'src1', 'room1')], 1, function(zz) paste0(zz, collapse = '.'))
+    s4 <- apply(k[, c('cat0', 'src0', 'room0')], 1, function(zz) paste0(zz, collapse = '.'))
+    s5 <- apply(k[, c('cat1', 'loc1')], 1, function(zz) paste0(zz, collapse = '.'))
+    s6 <- apply(k[, c('cat0', 'loc0')], 1, function(zz) paste0(zz, collapse = '.'))
+    ids[[i]][[j]]$item_correct <- as.numeric(s1 %in% s2)
+    ids[[i]][[j]]$time_correct <- as.numeric(s1 == s2)
+    ids[[i]][[j]]$room_correct <- as.numeric(s3 %in% s4)
+    ids[[i]][[j]]$cat_correct <- as.numeric(s5 %in% s6)
+  }
+}
+
+ids <- data.frame(do.call(rbind, lapply(ids, function(z) data.frame(do.call(rbind, z)))))
+row.names(ids) <- 1:nrow(ids)
+
+
+### PLOTS
+sess <- lapply(1:3, function(z) subset(simple, session == z))
+par(mfrow = c(2, 2))
+for(i in 1:3){hist(sess[[i]]$correct, main = '', xlab = paste('Session', i))}
+idcorr <- sapply(lapply(split(simple, simple$ID), '[[', 'correct'), mean)
+plot(sort(idcorr), type = 'b', ylab = 'Average Overall Performance', xlab = '')
+
+
+# Altogether
+dev.off()
+ggplot(simple, aes(x = trial, y = correct, color = factor(ID))) +
+  geom_line() + geom_point() + theme_bw()
+
+# By Condition
+dev.off()
+ggplot(simple2, aes(x = trial, y = correct, color = factor(ID))) +
+  geom_line() + geom_point() + theme_bw() + facet_wrap(~ condition)
+
+# By Session + Condition
+simple2 <- split(simple, simple$session)
+simple2$`2`$trial <- rep(1:30, 56)
+simple2$`3`$trial <- rep(1:30, 56)
+simple2 <- data.frame(do.call(rbind, simple2))
+levels(simple2$session) <- c('SESSION 1', 'SESSION 2', 'SESSION 3')
+
+dev.off()
+ggplot(simple2, aes(x = trial, y = correct, color = factor(ID))) +
+  geom_line() + geom_point() + theme_bw() + facet_wrap(~ session + condition)
 
 
 ### ------------------------------------------------------------------------ ###
