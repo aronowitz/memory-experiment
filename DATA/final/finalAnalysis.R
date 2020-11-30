@@ -14,6 +14,9 @@
 ### --------------------------- DATA PREPARATION --------------------------- ###
 ### ------------------------------------------------------------------------ ###
 if(!require(ggplot2)){install.packages('ggplot2', dependencies = TRUE)}
+if(!require(lme4)){install.packages('lme4', dependencies = TRUE)} # v1.1-19
+if(!require(lsmeans)){install.packages('lsmeans', dependencies = TRUE)}
+if(!require(effects)){install.packages('effects', dependencies = TRUE)}
 source('extractData.R')
 out <- getData(getJSONS(), matchPs = TRUE)
 sorts <- lapply(out, lapply, getSorts)
@@ -83,10 +86,12 @@ sorts <- cbind(sorts, inits)
 # write.csv(sorts, 'fullData.csv', row.names = FALSE)
 # write.csv(simple, 'simpleData.csv', row.names = FALSE)
 
-
+sorts <- data.frame(X = 1:nrow(sorts), sorts)
 ### Coding Error Patterns
 ids <- split(sorts, sorts$ID)
 ids <- lapply(ids, function(z) split(z, z$trial))
+newdat <- data.frame(matrix(NA, nrow = nrow(simple), ncol = 9))
+n <- 1
 
 for(i in seq_along(ids)){
   for(j in seq_along(ids[[i]])){
@@ -108,12 +113,24 @@ for(i in seq_along(ids)){
     ids[[i]][[j]]$room_correct <- as.numeric(s3 %in% s4)
     ids[[i]][[j]]$cat_correct <- as.numeric(s5 %in% s6)
     ids[[i]][[j]]$cat_room_correct <- as.numeric(s7 %in% s8)
+    
+    newdat[n, 1:4] <- ids[[i]][[j]][1, colnames(simple)[1:4]]
+    newdat[n, 5] <- sum(ids[[i]][[j]]$item_correct)/9
+    newdat[n, 6] <- sum(ids[[i]][[j]]$time_correct)/9
+    newdat[n, 7] <- sum(ids[[i]][[j]]$room_correct)/9
+    newdat[n, 8] <- sum(ids[[i]][[j]]$cat_correct)/9
+    newdat[n, 9] <- sum(ids[[i]][[j]]$cat_room_correct)/9
+    n <- n + 1
   }
 }
 
 ids <- data.frame(do.call(rbind, lapply(ids, function(z) data.frame(do.call(rbind, z)))))
 row.names(ids) <- 1:nrow(ids)
-
+colnames(newdat) <- c(colnames(simple)[1:4], colnames(ids)[17:21])
+for(i in c(1, 2, 4)){newdat[, i] <- factor(newdat[, i])}
+levels(newdat$condition) <- levels(simple$condition)
+#saveRDS(ids, 'fullData2.RDS')
+#saveRDS(newdat, 'simple2.RDS')
 
 ### PLOTS
 sess <- lapply(1:3, function(z) subset(simple, session == z))
@@ -130,7 +147,7 @@ ggplot(simple, aes(x = trial, y = correct, color = factor(ID))) +
 
 # By Condition
 dev.off()
-ggplot(simple2, aes(x = trial, y = correct, color = factor(ID))) +
+ggplot(simple, aes(x = trial, y = correct, color = factor(ID))) +
   geom_line() + geom_point() + theme_bw() + facet_wrap(~ condition)
 
 # By Session + Condition
@@ -150,9 +167,6 @@ ggplot(simple2, aes(x = trial, y = correct, color = factor(ID))) +
 ### ------------------------------------------------------------------------ ###
 
 ### Analysis 1: Simple dataset
-if(!require(lme4)){install.packages('lme4', dependencies = TRUE)} # v1.1-19
-if(!require(lsmeans)){install.packages('lsmeans', dependencies = TRUE)}
-
 m0 <- lmer(correct ~ condition + (1|ID) + (1|session),
            data = simple, REML = FALSE)
 m1 <- lmer(correct ~ trial + (1|ID) + (1|session),
@@ -167,4 +181,49 @@ anova(m1, m2) # Is trial necessary, or only condition?
 anova(m2, m3) # Are there interactions between trial and condition?
 
 lsmeans(m2, pairwise ~ condition, adjust = 'tukey')
+
+simple2 <- simple
+levels(simple2$condition) <- 1:5
+m2 <- lmer(correct ~ condition + trial + (1|ID) + (1|session),
+           data = simple2, REML = FALSE)
+
+plot(Effect(c('condition', 'trial'), m2))
+plot(Effect(c('trial', 'condition'), m2))
+
+
+### ------------------------------------------------------------------------ ###
+### ------------------------------- ANALYSIS 2 ----------------------------- ###
+### ------------------------------------------------------------------------ ###
+
+time <- lmer(time_correct ~ condition + trial + (1|ID) + (1|session),
+             data = newdat, REML = FALSE)
+lsmeans(time, pairwise ~ condition, adjust = 'tukey')
+
+plot(Effect(c('trial', 'condition'), time))
+
+room <- lmer(room_correct ~ condition + trial + (1|ID) + (1|session),
+             data = newdat, REML = FALSE)
+lsmeans(room, pairwise ~ condition, adjust = 'tukey')
+
+catcor <- lmer(cat_correct ~ condition + trial + (1|ID) + (1|session),
+               data = newdat, REML = FALSE)
+lsmeans(catcor, pairwise ~ condition, adjust = 'tukey')
+
+
+recency1 <- glmer(item_correct ~ condition + time1 + 
+                    (1|ID) + (1|session) + (1|trial), 
+                  data = ids, family = binomial)
+recency2 <- glmer(item_correct ~ condition * time1 + 
+                    (1|ID) + (1|session) + (1|trial), 
+                  data = ids, family = binomial)
+
+anova(recency1, recency2)
+
+
+# PULL REACTION TIME; individual differences; check the superstars
+# When do people use strategies? Moment of insight into cognitive map
+# Putting items back in reverse order
+# First and last items displayed -- are these tracked differently?
+# Chance 1/9
+
 
